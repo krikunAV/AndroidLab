@@ -8,6 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.NavHostFragment
+import com.google.firebase.auth.FirebaseAuth
 
 class SplashFragment : Fragment() {
 
@@ -21,9 +22,13 @@ class SplashFragment : Fragment() {
         Handler(Looper.getMainLooper()).postDelayed({
             val nav = NavHostFragment.findNavController(this)
 
+            val auth = FirebaseAuth.getInstance()
+            val isLoggedInFirebase = auth.currentUser != null
+            val auto = readAutoLogin(requireContext())
+
             when {
-                !hasCredentials(requireContext()) -> nav.navigate(R.id.registerFragment)
-                hasCredentials(requireContext()) && !readAutoLogin(requireContext()) -> nav.navigate(R.id.loginFragment)
+                !isLoggedInFirebase -> nav.navigate(R.id.registerFragment)
+                isLoggedInFirebase && !auto -> nav.navigate(R.id.loginFragment)
                 else -> nav.navigate(R.id.oneFragment)
             }
         }, 800)

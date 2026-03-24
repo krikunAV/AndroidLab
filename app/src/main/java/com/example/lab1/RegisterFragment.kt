@@ -10,6 +10,7 @@ import android.widget.EditText
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.NavHostFragment
+import com.google.firebase.auth.FirebaseAuth
 
 class RegisterFragment : Fragment() {
 
@@ -38,7 +39,7 @@ class RegisterFragment : Fragment() {
                 btnByEmail.setBackgroundColor(0xFFDDDDDD.toInt())
                 btnByEmail.setTextColor(0xFF222222.toInt())
 
-                etLogin.hint = "Введите телефон (пример: +370...)"
+                etLogin.hint = "Для Firebase нужен email. Выберите «По email»"
                 etLogin.inputType = InputType.TYPE_CLASS_PHONE
             } else {
                 btnByEmail.setBackgroundColor(0xFF6A1B9A.toInt())
@@ -53,7 +54,8 @@ class RegisterFragment : Fragment() {
             etLogin.text?.clear()
         }
 
-        setMode(true)
+        // можно оставить режим по умолчанию как был, но для Firebase удобнее email:
+        setMode(false)
 
         btnByPhone.setOnClickListener { setMode(true) }
         btnByEmail.setOnClickListener { setMode(false) }
@@ -63,32 +65,49 @@ class RegisterFragment : Fragment() {
             val pass = etPass.text.toString()
             val pass2 = etPassRepeat.text.toString()
 
-            if (login.isEmpty()) {
-                Toast.makeText(requireContext(), "Поле не должно быть пустым", Toast.LENGTH_SHORT).show()
+            // Firebase для этой лабы: только email
+            if (isPhoneMode) {
+                Toast.makeText(requireContext(), "Для Firebase выбери режим «По email»", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
-            if (!isPhoneMode && !login.contains("@")) {
+
+            if (login.isEmpty()) {
+                Toast.makeText(requireContext(), "Email не должен быть пустым", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            if (!login.contains("@")) {
                 Toast.makeText(requireContext(), "Email должен содержать символ @", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
-            if (isPhoneMode && !login.contains("+")) {
-                Toast.makeText(requireContext(), "Телефон должен содержать символ +", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
+
             if (pass.length < 8) {
                 Toast.makeText(requireContext(), "Пароль должен быть минимум 8 символов", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
+
             if (pass != pass2) {
                 Toast.makeText(requireContext(), "Пароли не совпадают", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
-            // ✅ сохраняем и переходим
-            saveCredentials(requireContext(), login, pass)
-            setAutoLogin(requireContext(), false)
+            val auth = FirebaseAuth.getInstance()
+            val nav = NavHostFragment.findNavController(this)
 
-            NavHostFragment.findNavController(this).navigate(R.id.oneFragment)
+            auth.createUserWithEmailAndPassword(login, pass)
+                .addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        // оставляем только настройку авто-входа (как в лабах)
+                        setAutoLogin(requireContext(), false)
+                        nav.navigate(R.id.oneFragment)
+                    } else {
+                        Toast.makeText(
+                            requireContext(),
+                            task.exception?.localizedMessage ?: "Ошибка регистрации",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+                }
         }
 
         return root

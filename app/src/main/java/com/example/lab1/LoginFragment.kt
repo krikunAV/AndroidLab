@@ -10,6 +10,7 @@ import android.widget.EditText
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.NavHostFragment
+import com.google.firebase.auth.FirebaseAuth
 
 class LoginFragment : Fragment() {
 
@@ -29,15 +30,32 @@ class LoginFragment : Fragment() {
             val login = etLogin.text.toString().trim()
             val pass = etPass.text.toString()
 
-            val savedLogin = readLogin(requireContext())
-            val savedPass = readPass(requireContext())
-
-            if (login == savedLogin && pass == savedPass) {
-                setAutoLogin(requireContext(), cbAuto.isChecked)
-                NavHostFragment.findNavController(this).navigate(R.id.oneFragment)
-            } else {
-                Toast.makeText(requireContext(), "Неверные данные для входа", Toast.LENGTH_SHORT).show()
+            if (login.isEmpty() || pass.isEmpty()) {
+                Toast.makeText(requireContext(), "Заполни email и пароль", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
             }
+
+            if (!login.contains("@")) {
+                Toast.makeText(requireContext(), "Введи корректный email", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            val auth = FirebaseAuth.getInstance()
+            val nav = NavHostFragment.findNavController(this)
+
+            auth.signInWithEmailAndPassword(login, pass)
+                .addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        setAutoLogin(requireContext(), cbAuto.isChecked)
+                        nav.navigate(R.id.oneFragment)
+                    } else {
+                        Toast.makeText(
+                            requireContext(),
+                            task.exception?.localizedMessage ?: "Ошибка входа",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+                }
         }
 
         return root
