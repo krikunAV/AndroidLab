@@ -2,7 +2,22 @@
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/oneFragment">
+    app:startDestination="@id/splashFragment">
+
+    <fragment
+        android:id="@+id/splashFragment"
+        android:name="com.example.lab1.SplashFragment"
+        android:label="Splash" />
+
+    <fragment
+        android:id="@+id/loginFragment"
+        android:name="com.example.lab1.LoginFragment"
+        android:label="Login" />
+
+    <fragment
+        android:id="@+id/registerFragment"
+        android:name="com.example.lab1.RegisterFragment"
+        android:label="Register" />
 
     <fragment
         android:id="@+id/oneFragment"
