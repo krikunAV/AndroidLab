@@ -8,6 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.NavHostFragment
+import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
 
 class SplashFragment : Fragment() {
@@ -20,6 +21,10 @@ class SplashFragment : Fragment() {
         val root = inflater.inflate(R.layout.fragment_splash, container, false)
 
         Handler(Looper.getMainLooper()).postDelayed({
+
+            // 🔥 ГАРАНТИРОВАННАЯ инициализация Firebase
+            FirebaseApp.initializeApp(requireContext())
+
             val nav = NavHostFragment.findNavController(this)
 
             val auth = FirebaseAuth.getInstance()
@@ -31,6 +36,7 @@ class SplashFragment : Fragment() {
                 isLoggedInFirebase && !auto -> nav.navigate(R.id.loginFragment)
                 else -> nav.navigate(R.id.oneFragment)
             }
+
         }, 800)
 
         return root
